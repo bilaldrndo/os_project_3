@@ -1,0 +1,47 @@
+int N = (max number of requests in system)
+int numberOfRequests = 0 //number of current requests
+bool isBusy = false //server busy status
+mutex mx //mutual exclusion lock
+condition cv //condition variable
+
+//Acquire the lock
+mutex_acquire(mx)
+
+//Check if the system is full
+if (numberOfRequests >= N)
+    mutex_release(mx)
+    thread_exitFailure()
+
+numberOfRequests++
+
+//if there are waiting requests, signal the waiting thread
+if (isBusy == true) {
+    wait(condition, mx);
+}
+
+//Set that the server is busy
+isBusy = true
+
+//Release the lock
+mutex_release(mx)
+
+//Call the function
+receiveService()
+
+//Acquire the lock
+mutex_acquire(mx)
+
+numberOfRequests--
+
+//Set that the server is not busy anymore
+isBusy = false
+
+//If there are waiting threads, signal the Conidition Variable
+if(numberOfRequests > 0)
+    signal(cv)
+
+//Release the lock
+mutex_release(mx)
+
+//Exit
+thread_exitSuccess()
